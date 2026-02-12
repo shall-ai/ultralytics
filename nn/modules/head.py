@@ -1668,9 +1668,11 @@ class RTDETRDecoder(nn.Module):
         if self.dynamic or self.shapes != shapes:
             self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
             self.shapes = shapes
-
+        valid_mask = self.valid_mask
+        if self.training and hasattr(valid_mask, "is_inference") and valid_mask.is_inference():
+            valid_mask = valid_mask.clone()
         # Prepare input for decoder
-        features = self.enc_output(self.valid_mask * feats)  # bs, h*w, 256
+        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection

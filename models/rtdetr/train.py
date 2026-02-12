@@ -6,7 +6,7 @@ from copy import copy
 
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 
 from .val import RTDETRDataset, RTDETRValidator
 
@@ -40,6 +40,24 @@ class RTDETRTrainer(DetectionTrainer):
         - F.grid_sample used in RT-DETR does not support the `deterministic=True` argument.
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Force deterministic training off because RT-DETR relies on non-deterministic ops."""
+        if overrides is None:
+            overrides = {}
+        elif not isinstance(overrides, dict):
+            overrides = vars(overrides).copy()
+        else:
+            overrides = overrides.copy()
+
+        deterministic_requested = overrides.get("deterministic", getattr(DEFAULT_CFG, "deterministic", False))
+        if deterministic_requested:
+            LOGGER.warning(
+                "Deterministic training is not supported for RT-DETR because F.grid_sample lacks"
+                " deterministic CUDA kernels; forcing deterministic=False."
+            )
+        overrides["deterministic"] = False
+        super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
         """Initialize and return an RT-DETR model for object detection tasks.
