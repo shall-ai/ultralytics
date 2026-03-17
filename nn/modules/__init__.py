@@ -106,6 +106,10 @@ from .transformer import (
     TransformerLayer,
 )
 
+from .repman_seg import RepHGBlock, Stem, MANet
+
+from .myolo import MoEODSSBlock, CSA
+
 __all__ = (
     "AIFI",
     "C1",
@@ -187,4 +191,11 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+
+    'RepHGBlock',
+    'Stem',
+    'MANet',
+
+    'MoEODSSBlock',
+    'CSA',
 )
